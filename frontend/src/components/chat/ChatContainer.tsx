@@ -66,6 +66,7 @@ export function ChatContainer() {
         content,
         settingsState.provider,
         settingsState.credentials,
+        settingsState.model,
         (chunk: string) => {
           fullContent += chunk;
           setStreamingContent(fullContent);

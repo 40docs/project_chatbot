@@ -1,6 +1,6 @@
 import type { ValidationResult, Conversation } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export async function validateCredentials(
   provider: string,
@@ -105,6 +105,7 @@ export async function sendMessage(
   message: string,
   provider: string,
   credentials: Record<string, string>,
+  model: string,
   onChunk: (chunk: string) => void
 ): Promise<void> {
   try {
@@ -118,6 +119,7 @@ export async function sendMessage(
         message,
         provider,
         credentials,
+        model,
       }),
     });
 

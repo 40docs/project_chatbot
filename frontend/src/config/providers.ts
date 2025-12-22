@@ -6,14 +6,26 @@ export const PROVIDERS: ProviderConfig[] = [
     name: 'Anthropic',
     fields: [
       { key: 'apiKey', label: 'API Key', type: 'password', required: true }
-    ]
+    ],
+    models: [
+      { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', description: 'Latest balanced model' },
+      { id: 'claude-opus-4-20250514', name: 'Claude Opus 4', description: 'Most capable model' },
+      { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', description: 'Fastest model' },
+    ],
+    defaultModel: 'claude-sonnet-4-20250514'
   },
   {
     id: 'openai',
     name: 'OpenAI',
     fields: [
       { key: 'apiKey', label: 'API Key', type: 'password', required: true }
-    ]
+    ],
+    models: [
+      { id: 'gpt-4o', name: 'GPT-4o', description: 'Most capable, multimodal' },
+      { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast and affordable' },
+      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', description: 'High capability' },
+    ],
+    defaultModel: 'gpt-4o'
   }
 ];
 

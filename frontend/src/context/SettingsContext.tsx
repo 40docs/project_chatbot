@@ -1,10 +1,11 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { ValidationStatus } from '../types';
-import { getDefaultProvider } from '../config/providers';
+import { getDefaultProvider, getProviderById } from '../config/providers';
 
 interface SettingsState {
   provider: string;
+  model: string;
   credentials: Record<string, string>;
   validationStatus: ValidationStatus;
   validationError: string | null;
@@ -13,6 +14,7 @@ interface SettingsState {
 
 type SettingsAction =
   | { type: 'SET_PROVIDER'; payload: string }
+  | { type: 'SET_MODEL'; payload: string }
   | { type: 'SET_CREDENTIAL'; payload: { key: string; value: string } }
   | { type: 'SET_CREDENTIALS'; payload: Record<string, string> }
   | { type: 'SET_VALIDATION_STATUS'; payload: ValidationStatus }
@@ -29,6 +31,7 @@ function loadStoredSettings(): Partial<SettingsState> {
       const parsed = JSON.parse(stored);
       return {
         provider: parsed.provider,
+        model: parsed.model,
         credentials: parsed.credentials || {}
       };
     }
@@ -38,18 +41,20 @@ function loadStoredSettings(): Partial<SettingsState> {
   return {};
 }
 
-function saveSettings(provider: string, credentials: Record<string, string>) {
+function saveSettings(provider: string, model: string, credentials: Record<string, string>) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ provider, credentials }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ provider, model, credentials }));
   } catch {
     // Ignore storage errors
   }
 }
 
 const storedSettings = loadStoredSettings();
+const defaultProvider = getDefaultProvider();
 
 const initialState: SettingsState = {
-  provider: storedSettings.provider || getDefaultProvider().id,
+  provider: storedSettings.provider || defaultProvider.id,
+  model: storedSettings.model || defaultProvider.defaultModel,
   credentials: storedSettings.credentials || {},
   validationStatus: storedSettings.credentials && Object.keys(storedSettings.credentials).length > 0 ? 'success' : 'idle',
   validationError: null,
@@ -58,13 +63,22 @@ const initialState: SettingsState = {
 
 function settingsReducer(state: SettingsState, action: SettingsAction): SettingsState {
   switch (action.type) {
-    case 'SET_PROVIDER':
+    case 'SET_PROVIDER': {
+      const newProvider = getProviderById(action.payload);
       return {
         ...state,
         provider: action.payload,
+        model: newProvider?.defaultModel || '',
         credentials: {},
         validationStatus: 'idle',
         validationError: null
+      };
+    }
+
+    case 'SET_MODEL':
+      return {
+        ...state,
+        model: action.payload
       };
 
     case 'SET_CREDENTIAL':
@@ -115,6 +129,7 @@ function settingsReducer(state: SettingsState, action: SettingsAction): Settings
 interface SettingsContextValue {
   state: SettingsState;
   setProvider: (provider: string) => void;
+  setModel: (model: string) => void;
   setCredential: (key: string, value: string) => void;
   setValidationStatus: (status: ValidationStatus) => void;
   setValidationError: (error: string | null) => void;
@@ -131,6 +146,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const setProvider = (provider: string) => {
     dispatch({ type: 'SET_PROVIDER', payload: provider });
+  };
+
+  const setModel = (model: string) => {
+    dispatch({ type: 'SET_MODEL', payload: model });
   };
 
   const setCredential = (key: string, value: string) => {
@@ -154,7 +173,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   };
 
   const saveCredentials = () => {
-    saveSettings(state.provider, state.credentials);
+    saveSettings(state.provider, state.model, state.credentials);
   };
 
   const hasValidCredentials = () => {
@@ -164,15 +183,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   // Save to localStorage when credentials are validated
   useEffect(() => {
     if (state.validationStatus === 'success') {
-      saveSettings(state.provider, state.credentials);
+      saveSettings(state.provider, state.model, state.credentials);
     }
-  }, [state.validationStatus, state.provider, state.credentials]);
+  }, [state.validationStatus, state.provider, state.model, state.credentials]);
 
   return (
     <SettingsContext.Provider
       value={{
         state,
         setProvider,
+        setModel,
         setCredential,
         setValidationStatus,
         setValidationError,

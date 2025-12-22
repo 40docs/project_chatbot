@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { KeyboardEvent } from 'react';
+import { ModelSelector } from './ModelSelector';
 
 interface MessageInputProps {
   onSend: (message: string) => void;
@@ -46,6 +47,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
             rows={1}
             className="flex-1 bg-transparent resize-none outline-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm leading-relaxed max-h-[200px]"
           />
+          <ModelSelector />
           <button
             onClick={handleSubmit}
             disabled={disabled || !message.trim()}

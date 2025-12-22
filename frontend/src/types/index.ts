@@ -13,10 +13,18 @@ export interface Conversation {
   updatedAt: Date;
 }
 
+export interface ModelOption {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 export interface ProviderConfig {
   id: string;
   name: string;
   fields: CredentialField[];
+  models: ModelOption[];
+  defaultModel: string;
 }
 
 export interface CredentialField {

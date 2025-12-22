@@ -1,0 +1,19 @@
+# Web framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# LLM Providers
+anthropic>=0.18.0
+openai>=1.12.0
+
+# SSE streaming
+sse-starlette>=1.8.0
+
+# Validation
+pydantic>=2.5.0
+
+# HTTP client (for future providers like Bedrock/SageMaker)
+httpx>=0.26.0
+
+# Environment
+python-dotenv>=1.0.0
