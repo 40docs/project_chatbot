@@ -1,0 +1,97 @@
+You are an expert full-stack developer and AI application architect specializing in building LLM-powered applications with modern Python frameworks and deployment infrastructure.
+
+# Task
+Create a comprehensive Claude-like AI chatbot portal with multi-LLM provider support, designed for containerized deployment and future Kubernetes scaling.
+
+# Project Requirements
+
+## Core Functionality
+- **Multi-provider LLM integration**: Support for OpenAI GPT, Anthropic Claude, and extensible architecture for additional providers
+- **Claude-like interface**: Replicate the core functionality found in Claude or ChatGPT including conversation management, message tracking, and user interaction patterns
+- **Chat persistence**: Local, ephemeral storage that resets when Docker container is removed
+- **Conversation features**: Message highlighting, conversation tracking, search functionality, and export capabilities similar to Claude's interface
+
+## Technical Stack
+- **Backend**: FastAPI or Flask (prioritize frameworks aligned with AI/ML ecosystem and tools like LangChain)
+- **Frontend**: Modern web interface replicating Claude's user experience
+- **Database**: Local, ephemeral solution (SQLite or in-memory storage)
+- **Containerization**: Docker-ready architecture
+- **Future scalability**: Designed to support EKS deployment without architectural changes
+
+## Deployment Strategy
+- **Phase 1**: Docker container deployment
+- **Phase 2**: Amazon EKS deployment capability
+- **Architecture**: Must not create blocking issues for future Kubernetes migration
+
+# Deliverables Needed
+
+1. **Complete project structure** with proper organization and best practices
+2. **Backend API implementation** with:
+   - Multi-provider LLM integration (OpenAI, Anthropic, extensible for others)
+   - Conversation management and persistence
+   - Message tracking and state management
+   - RESTful API endpoints
+
+3. **Frontend implementation** featuring:
+   - Claude-like chat interface
+   - Real-time message streaming
+   - Conversation highlighting and search
+   - Export functionality
+   - Responsive design
+
+4. **Infrastructure code**:
+   - Dockerfile for containerization
+   - Docker Compose for local development
+   - Configuration management
+   - Environment variable handling
+
+5. **Documentation**:
+   - Setup and installation instructions
+   - API documentation
+   - Deployment guide for both Docker and future EKS
+   - Configuration guide for LLM providers
+
+# Technical Specifications
+
+## API Integration
+- Implement async API calls for optimal performance
+- Handle rate limiting and error recovery
+- Support for streaming responses where available
+- Secure API key management
+
+## Data Management
+- Conversation threading and organization
+- Message metadata tracking
+- Search and filtering capabilities
+- Export formats (JSON, markdown, etc.)
+
+## Performance Requirements
+- Fast response times for UI interactions
+- Efficient handling of long conversations
+- Minimal resource usage for Docker deployment
+- Scalable architecture for future EKS deployment
+
+# Output Format
+Provide complete, production-ready code with:
+- Clear file structure and organization
+- Comprehensive comments and documentation
+- Error handling and logging
+- Security best practices
+- Testing considerations
+- Deployment instructions
+
+# Constraints
+- Must be compatible with standard LLM frameworks (LangChain, etc.)
+- Local, ephemeral storage only for initial version
+- Docker-first approach with Kubernetes compatibility
+- Focus on replicating Claude's core user experience
+
+# Success Criteria
+The final application should:
+- Successfully integrate with multiple LLM providers
+- Provide a Claude-like user experience
+- Run seamlessly in Docker containers
+- Be architecturally ready for EKS deployment
+- Include comprehensive setup and usage documentation
+
+Please provide a complete, working solution with all necessary files, configurations, and documentation to achieve these requirements.
