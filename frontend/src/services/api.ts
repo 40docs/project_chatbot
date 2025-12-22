@@ -135,8 +135,9 @@ export async function sendMessage(
     }
 
     const decoder = new TextDecoder();
+    let streamComplete = false;
 
-    while (true) {
+    while (!streamComplete) {
       const { done, value } = await reader.read();
       if (done) break;
 
@@ -147,7 +148,10 @@ export async function sendMessage(
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
-          if (data === '[DONE]') break;
+          if (data === '[DONE]') {
+            streamComplete = true;
+            break;
+          }
 
           try {
             const parsed = JSON.parse(data);
@@ -155,8 +159,7 @@ export async function sendMessage(
               onChunk(parsed.content);
             }
           } catch {
-            // If not JSON, treat as plain text
-            onChunk(data);
+            // If not valid JSON, skip it (don't treat as plain text)
           }
         }
       }

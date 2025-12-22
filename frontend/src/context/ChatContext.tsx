@@ -96,7 +96,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
 interface ChatContextValue {
   state: ChatState;
-  createConversation: () => void;
+  createConversation: () => string;
   setActiveConversation: (id: string | null) => void;
   addMessage: (conversationId: string, message: Message) => void;
   updateStreamingMessage: (conversationId: string, messageId: string, content: string) => void;
@@ -110,7 +110,7 @@ const ChatContext = createContext<ChatContextValue | null>(null);
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
 
-  const createConversation = () => {
+  const createConversation = (): string => {
     const newConversation: Conversation = {
       id: crypto.randomUUID(),
       title: 'New conversation',
@@ -119,6 +119,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       updatedAt: new Date()
     };
     dispatch({ type: 'ADD_CONVERSATION', payload: newConversation });
+    return newConversation.id;
   };
 
   const setActiveConversation = (id: string | null) => {
