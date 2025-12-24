@@ -10,6 +10,7 @@ interface SettingsState {
   validationStatus: ValidationStatus;
   validationError: string | null;
   isSettingsOpen: boolean;
+  ragEnabled: boolean;
 }
 
 type SettingsAction =
@@ -20,7 +21,8 @@ type SettingsAction =
   | { type: 'SET_VALIDATION_STATUS'; payload: ValidationStatus }
   | { type: 'SET_VALIDATION_ERROR'; payload: string | null }
   | { type: 'TOGGLE_SETTINGS'; payload?: boolean }
-  | { type: 'RESET_VALIDATION' };
+  | { type: 'RESET_VALIDATION' }
+  | { type: 'SET_RAG_ENABLED'; payload: boolean };
 
 const STORAGE_KEY = 'llm-portal-settings';
 
@@ -32,7 +34,8 @@ function loadStoredSettings(): Partial<SettingsState> {
       return {
         provider: parsed.provider,
         model: parsed.model,
-        credentials: parsed.credentials || {}
+        credentials: parsed.credentials || {},
+        ragEnabled: parsed.ragEnabled !== undefined ? parsed.ragEnabled : true
       };
     }
   } catch {
@@ -41,9 +44,9 @@ function loadStoredSettings(): Partial<SettingsState> {
   return {};
 }
 
-function saveSettings(provider: string, model: string, credentials: Record<string, string>) {
+function saveSettings(provider: string, model: string, credentials: Record<string, string>, ragEnabled: boolean) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ provider, model, credentials }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ provider, model, credentials, ragEnabled }));
   } catch {
     // Ignore storage errors
   }
@@ -58,7 +61,8 @@ const initialState: SettingsState = {
   credentials: storedSettings.credentials || {},
   validationStatus: storedSettings.credentials && Object.keys(storedSettings.credentials).length > 0 ? 'success' : 'idle',
   validationError: null,
-  isSettingsOpen: false
+  isSettingsOpen: false,
+  ragEnabled: storedSettings.ragEnabled !== undefined ? storedSettings.ragEnabled : true
 };
 
 function settingsReducer(state: SettingsState, action: SettingsAction): SettingsState {
@@ -121,6 +125,12 @@ function settingsReducer(state: SettingsState, action: SettingsAction): Settings
         validationError: null
       };
 
+    case 'SET_RAG_ENABLED':
+      return {
+        ...state,
+        ragEnabled: action.payload
+      };
+
     default:
       return state;
   }
@@ -137,6 +147,7 @@ interface SettingsContextValue {
   resetValidation: () => void;
   saveCredentials: () => void;
   hasValidCredentials: () => boolean;
+  setRagEnabled: (enabled: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -172,20 +183,28 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'RESET_VALIDATION' });
   };
 
+  const setRagEnabled = (enabled: boolean) => {
+    dispatch({ type: 'SET_RAG_ENABLED', payload: enabled });
+  };
+
   const saveCredentials = () => {
-    saveSettings(state.provider, state.model, state.credentials);
+    saveSettings(state.provider, state.model, state.credentials, state.ragEnabled);
   };
 
   const hasValidCredentials = () => {
+    // SageMaker doesn't require credentials (uses IAM role)
+    if (state.provider === 'sagemaker') {
+      return state.validationStatus === 'success';
+    }
     return state.validationStatus === 'success' && Object.keys(state.credentials).length > 0;
   };
 
-  // Save to localStorage when credentials are validated
+  // Save to localStorage when credentials are validated or RAG setting changes
   useEffect(() => {
     if (state.validationStatus === 'success') {
-      saveSettings(state.provider, state.model, state.credentials);
+      saveSettings(state.provider, state.model, state.credentials, state.ragEnabled);
     }
-  }, [state.validationStatus, state.provider, state.model, state.credentials]);
+  }, [state.validationStatus, state.provider, state.model, state.credentials, state.ragEnabled]);
 
   return (
     <SettingsContext.Provider
@@ -199,7 +218,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         toggleSettings,
         resetValidation,
         saveCredentials,
-        hasValidCredentials
+        hasValidCredentials,
+        setRagEnabled
       }}
     >
       {children}

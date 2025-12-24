@@ -33,6 +33,11 @@ class ChatRequest(BaseModel):
         default=None,
         description="Optional conversation history"
     )
+    rag_enabled: Optional[bool] = Field(
+        default=True,
+        alias="ragEnabled",
+        description="Enable RAG context retrieval (SageMaker provider only)"
+    )
 
     class Config:
         populate_by_name = True

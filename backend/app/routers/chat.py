@@ -16,7 +16,8 @@ async def generate_sse_stream(
     messages: list,
     model: str | None,
     conversation_id: str,
-    user_message: str
+    user_message: str,
+    rag_enabled: bool = True
 ) -> AsyncGenerator[dict, None]:
     """Generate SSE events from provider stream.
 
@@ -27,12 +28,13 @@ async def generate_sse_stream(
         model: Optional model override
         conversation_id: ID of the conversation
         user_message: The user's message
+        rag_enabled: Whether to enable RAG context (SageMaker only)
 
     Yields:
         SSE event dicts
     """
     try:
-        provider = get_provider(provider_id, api_key=api_key)
+        provider = get_provider(provider_id, api_key=api_key, rag_enabled=rag_enabled)
 
         # Store user message
         conversation_store.add_message(
@@ -42,7 +44,7 @@ async def generate_sse_stream(
 
         full_response = ""
 
-        async for chunk in provider.generate_stream(messages, model=model):
+        async for chunk in provider.generate_stream(messages, model=model, rag_enabled=rag_enabled):
             full_response += chunk
             yield {"data": json.dumps({"content": chunk})}
 
@@ -69,9 +71,10 @@ async def chat(request: ChatRequest):
     Returns:
         SSE stream of response chunks
     """
-    api_key = request.credentials.get("apiKey")
+    api_key = request.credentials.get("apiKey", "")
 
-    if not api_key:
+    # SageMaker provider doesn't require an API key (uses IAM)
+    if not api_key and request.provider != "sagemaker":
         raise HTTPException(status_code=400, detail="API key is required")
 
     try:
@@ -102,7 +105,8 @@ async def chat(request: ChatRequest):
             messages=messages,
             model=request.model,
             conversation_id=request.conversation_id,
-            user_message=request.message
+            user_message=request.message,
+            rag_enabled=request.rag_enabled
         )
     )
 

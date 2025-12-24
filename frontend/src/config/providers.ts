@@ -26,6 +26,20 @@ export const PROVIDERS: ProviderConfig[] = [
       { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', description: 'High capability' },
     ],
     defaultModel: 'gpt-4o'
+  },
+  {
+    id: 'sagemaker',
+    name: 'SageMaker RAG',
+    fields: [], // No API key needed - uses EC2 IAM role
+    models: [
+      {
+        id: 'mistral-7b-instruct',
+        name: 'Mistral 7B Instruct',
+        description: 'Self-hosted Mistral model with optional RAG context'
+      }
+    ],
+    defaultModel: 'mistral-7b-instruct',
+    supportsRag: true
   }
 ];
 

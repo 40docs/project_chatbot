@@ -51,7 +51,8 @@ export function ChatContainer() {
         (chunk: string) => {
           fullContent += chunk;
           setStreamingContent(fullContent);
-        }
+        },
+        settingsState.ragEnabled
       );
 
       // Add assistant message after streaming completes
