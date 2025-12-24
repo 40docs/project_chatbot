@@ -41,6 +41,11 @@ function mockValidateCredentials(
   provider: string,
   credentials: Record<string, string>
 ): ValidationResult {
+  // SageMaker doesn't require an API key (uses IAM role)
+  if (provider === 'sagemaker') {
+    return { valid: true, provider };
+  }
+
   // Simulate API key validation
   const apiKey = credentials.apiKey || '';
 
@@ -106,7 +111,8 @@ export async function sendMessage(
   provider: string,
   credentials: Record<string, string>,
   model: string,
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
+  ragEnabled?: boolean
 ): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/chat`, {
@@ -120,6 +126,7 @@ export async function sendMessage(
         provider,
         credentials,
         model,
+        ragEnabled,
       }),
     });
 

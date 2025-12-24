@@ -3,6 +3,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { ProviderSelect } from './ProviderSelect';
 import { CredentialFields } from './CredentialFields';
 import { ValidationStatus } from './ValidationStatus';
+import { RagToggle } from './RagToggle';
 import { validateCredentials } from '../../services/api';
 import { getProviderById } from '../../config/providers';
 
@@ -101,6 +102,7 @@ export function SettingsModal() {
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <ProviderSelect />
           <CredentialFields />
+          <RagToggle />
 
           {/* Submit and Status */}
           <div className="flex items-center justify-between pt-4">

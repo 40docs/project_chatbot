@@ -12,8 +12,11 @@ sse-starlette>=1.8.0
 # Validation
 pydantic>=2.5.0
 
-# HTTP client (for future providers like Bedrock/SageMaker)
+# HTTP client
 httpx>=0.26.0
+
+# AWS SDK (for SageMaker provider)
+boto3>=1.34.0
 
 # Environment
 python-dotenv>=1.0.0

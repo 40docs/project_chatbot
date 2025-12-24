@@ -4,6 +4,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { sendMessage } from '../../services/api';
+import { generateUUID } from '../../utils/uuid';
 import type { Message } from '../../types';
 
 export function ChatContainer() {
@@ -28,7 +29,7 @@ export function ChatContainer() {
 
     // Add user message
     const userMessage: Message = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       role: 'user',
       content,
       timestamp: new Date()
@@ -51,12 +52,13 @@ export function ChatContainer() {
         (chunk: string) => {
           fullContent += chunk;
           setStreamingContent(fullContent);
-        }
+        },
+        settingsState.ragEnabled
       );
 
       // Add assistant message after streaming completes
       const assistantMessage: Message = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         role: 'assistant',
         content: fullContent,
         timestamp: new Date()
@@ -65,7 +67,7 @@ export function ChatContainer() {
     } catch (error) {
       console.error('Error sending message:', error);
       const assistantMessage: Message = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         role: 'assistant',
         content: 'Sorry, an error occurred while processing your request.',
         timestamp: new Date()

@@ -25,6 +25,7 @@ export interface ProviderConfig {
   fields: CredentialField[];
   models: ModelOption[];
   defaultModel: string;
+  supportsRag?: boolean;
 }
 
 export interface CredentialField {

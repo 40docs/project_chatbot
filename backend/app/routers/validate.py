@@ -19,7 +19,8 @@ async def validate_credentials(provider_id: str, request: ValidateRequest):
     """
     api_key = request.credentials.get("apiKey")
 
-    if not api_key:
+    # SageMaker uses IAM authentication, not API keys
+    if not api_key and provider_id != "sagemaker":
         return ValidationResponse(
             valid=False,
             provider=provider_id,

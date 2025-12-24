@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer } from 'react';
 import type { ReactNode } from 'react';
 import type { Conversation, Message } from '../types';
+import { generateUUID } from '../utils/uuid';
 
 interface ChatState {
   conversations: Conversation[];
@@ -112,7 +113,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const createConversation = (): string => {
     const newConversation: Conversation = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       title: 'New conversation',
       messages: [],
       createdAt: new Date(),

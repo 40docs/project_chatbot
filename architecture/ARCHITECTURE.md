@@ -31,8 +31,8 @@ The system follows a **component-based frontend architecture** with a lightweigh
 │  ┌──────────────────────────────────────────────────────────┐  │
 │  │              LLM Provider Adapter                         │  │
 │  │  ┌────────────┐  ┌────────────┐  ┌────────────┐          │  │
-│  │  │ Anthropic  │  │  OpenAI    │  │  (Future)  │          │  │
-│  │  │  Adapter   │  │  Adapter   │  │  Adapters  │          │  │
+│  │  │ Anthropic  │  │  OpenAI    │  │ SageMaker  │          │  │
+│  │  │  Adapter   │  │  Adapter   │  │  RAG       │          │  │
 │  │  └────────────┘  └────────────┘  └────────────┘          │  │
 │  └──────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
@@ -55,7 +55,8 @@ The system follows a **component-based frontend architecture** with a lightweigh
                               ▼
                  ┌────────────────────────┐
                  │   External LLM APIs    │
-                 │  (Anthropic, etc.)     │
+                 │  Anthropic, OpenAI,    │
+                 │  SageMaker Endpoints   │
                  └────────────────────────┘
 ```
 
@@ -114,7 +115,8 @@ src/
 │   │   ├── SettingsModal.tsx      # Settings overlay container
 │   │   ├── ProviderSelect.tsx     # Provider dropdown
 │   │   ├── CredentialFields.tsx   # Dynamic credential inputs
-│   │   └── ValidationStatus.tsx   # Green check / Red error
+│   │   ├── ValidationStatus.tsx   # Green check / Red error
+│   │   └── RagToggle.tsx          # RAG on/off toggle (SageMaker only)
 │   │
 │   └── layout/
 │       ├── Header.tsx             # Top bar with logo, settings icon
@@ -167,7 +169,12 @@ export const PROVIDERS: ProviderConfig[] = [
     ],
     validateEndpoint: '/api/validate/anthropic'
   },
-  // Future providers added here - no UI changes needed
+  {
+    id: 'sagemaker',
+    name: 'SageMaker RAG',
+    fields: [],  // Uses IAM role, no API key needed
+    supportsRag: true  // Enables RAG toggle in UI
+  }
 ];
 ```
 
@@ -186,6 +193,8 @@ backend/
 │   │   ├── providers/
 │   │   │   ├── base.py            # Abstract provider interface
 │   │   │   ├── anthropic.py       # Anthropic implementation
+│   │   │   ├── openai.py          # OpenAI implementation
+│   │   │   ├── sagemaker.py       # SageMaker RAG implementation
 │   │   │   └── factory.py         # Provider instantiation
 │   │   │
 │   │   └── validation.py          # Key validation logic
@@ -338,6 +347,7 @@ interface SettingsState {
   credentials: Record<string, string>;
   validationStatus: 'idle' | 'validating' | 'success' | 'error';
   validationError: string | null;
+  ragEnabled: boolean;  // For SageMaker RAG provider
 }
 ```
 
@@ -364,6 +374,52 @@ interface SettingsState {
 3. **Add validation route** (`backend/app/routers/validate.py`)
 
 No frontend component changes required.
+
+### 7.2 SageMaker RAG Provider
+
+The SageMaker provider integrates with AWS SageMaker infrastructure for self-hosted LLM inference with optional RAG (Retrieval-Augmented Generation).
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        SageMaker RAG Provider                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  User Question ──▶ SageMaker Provider                                       │
+│                           │                                                 │
+│                           ├── RAG Enabled? ──▶ Query Processor Lambda       │
+│                           │                           │                     │
+│                           │                           ▼                     │
+│                           │                    OpenSearch (k-NN)            │
+│                           │                           │                     │
+│                           │                           ▼                     │
+│                           │                    Context Retrieved            │
+│                           │                           │                     │
+│                           ├───────────────────────────┘                     │
+│                           ▼                                                 │
+│                    Format Mistral Prompt (with/without context)             │
+│                           │                                                 │
+│                           ▼                                                 │
+│                    SageMaker LLM Endpoint (Streaming)                       │
+│                           │                                                 │
+│                           ▼                                                 │
+│                    SSE Response to Frontend                                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Features:**
+- **No API Key Required**: Uses EC2 IAM role for authentication
+- **RAG Toggle**: Users can enable/disable document context retrieval
+- **Streaming**: Real-time token streaming via `invoke_endpoint_with_response_stream`
+- **Cold Start Handling**: Graceful messaging when endpoints are starting (5-10 min)
+
+**Environment Variables:**
+| Variable | Description |
+|----------|-------------|
+| `SAGEMAKER_LLM_ENDPOINT` | SageMaker LLM endpoint name |
+| `QUERY_PROCESSOR_LAMBDA` | Lambda function for RAG context retrieval |
+| `AWS_REGION` | AWS region for boto3 clients |
 
 ---
 
@@ -412,3 +468,4 @@ Architecture designed for:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-12-22 | System | Initial architecture |
+| 1.1.0 | 2025-12-24 | Claude | Added SageMaker RAG provider integration |
