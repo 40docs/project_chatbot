@@ -55,11 +55,23 @@ function saveSettings(provider: string, model: string, credentials: Record<strin
 const storedSettings = loadStoredSettings();
 const defaultProvider = getDefaultProvider();
 
+// Determine initial validation status based on provider type
+function getInitialValidationStatus(): ValidationStatus {
+  const provider = storedSettings.provider || defaultProvider.id;
+  // SageMaker uses IAM, so if it was previously validated, restore that status
+  if (provider === 'sagemaker') {
+    // Check if SageMaker was previously validated (stored in localStorage)
+    return storedSettings.credentials !== undefined ? 'success' : 'idle';
+  }
+  // Other providers require stored credentials
+  return storedSettings.credentials && Object.keys(storedSettings.credentials).length > 0 ? 'success' : 'idle';
+}
+
 const initialState: SettingsState = {
   provider: storedSettings.provider || defaultProvider.id,
   model: storedSettings.model || defaultProvider.defaultModel,
   credentials: storedSettings.credentials || {},
-  validationStatus: storedSettings.credentials && Object.keys(storedSettings.credentials).length > 0 ? 'success' : 'idle',
+  validationStatus: getInitialValidationStatus(),
   validationError: null,
   isSettingsOpen: false,
   ragEnabled: storedSettings.ragEnabled !== undefined ? storedSettings.ragEnabled : true
