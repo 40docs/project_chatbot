@@ -192,42 +192,29 @@ class SageMakerProvider(BaseProvider):
 
             logger.info(f"Invoking LLM endpoint: {self.endpoint_name}")
 
-            # Try streaming first, fall back to non-streaming
-            try:
-                response = self.runtime_client.invoke_endpoint_with_response_stream(
-                    EndpointName=self.endpoint_name,
-                    ContentType="application/json",
-                    Body=json.dumps(payload),
-                )
+            # Use non-streaming endpoint (more reliable with JumpStart models)
+            response = self.runtime_client.invoke_endpoint(
+                EndpointName=self.endpoint_name,
+                ContentType="application/json",
+                Body=json.dumps(payload),
+            )
 
-                # Parse streaming response
-                async for chunk in self._parse_stream(response):
-                    yield chunk
+            result = json.loads(response["Body"].read().decode())
+            logger.info(f"LLM response received: {len(str(result))} chars")
 
-            except Exception as stream_error:
-                logger.warning(f"Streaming failed, falling back to non-streaming: {stream_error}")
+            # Parse response - can be list or dict
+            if isinstance(result, list) and len(result) > 0:
+                generated = result[0].get("generated_text", "")
+            elif isinstance(result, dict):
+                generated = result.get("generated_text", "")
+            else:
+                generated = str(result)
 
-                # Fallback to non-streaming endpoint
-                response = self.runtime_client.invoke_endpoint(
-                    EndpointName=self.endpoint_name,
-                    ContentType="application/json",
-                    Body=json.dumps(payload),
-                )
-
-                result = json.loads(response["Body"].read().decode())
-                logger.info(f"Non-streaming response: {result}")
-
-                # Parse response - can be list or dict
-                if isinstance(result, list) and len(result) > 0:
-                    generated = result[0].get("generated_text", "")
-                elif isinstance(result, dict):
-                    generated = result.get("generated_text", "")
-                else:
-                    generated = str(result)
-
-                # Yield as a single chunk
-                if generated:
-                    yield generated
+            # Yield the full response
+            if generated:
+                yield generated
+            else:
+                yield "[No response generated]"
 
         except ClientError as e:
             error_msg = str(e)
