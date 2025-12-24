@@ -192,16 +192,42 @@ class SageMakerProvider(BaseProvider):
 
             logger.info(f"Invoking LLM endpoint: {self.endpoint_name}")
 
-            # Use streaming endpoint
-            response = self.runtime_client.invoke_endpoint_with_response_stream(
-                EndpointName=self.endpoint_name,
-                ContentType="application/json",
-                Body=json.dumps(payload),
-            )
+            # Try streaming first, fall back to non-streaming
+            try:
+                response = self.runtime_client.invoke_endpoint_with_response_stream(
+                    EndpointName=self.endpoint_name,
+                    ContentType="application/json",
+                    Body=json.dumps(payload),
+                )
 
-            # Parse streaming response
-            async for chunk in self._parse_stream(response):
-                yield chunk
+                # Parse streaming response
+                async for chunk in self._parse_stream(response):
+                    yield chunk
+
+            except Exception as stream_error:
+                logger.warning(f"Streaming failed, falling back to non-streaming: {stream_error}")
+
+                # Fallback to non-streaming endpoint
+                response = self.runtime_client.invoke_endpoint(
+                    EndpointName=self.endpoint_name,
+                    ContentType="application/json",
+                    Body=json.dumps(payload),
+                )
+
+                result = json.loads(response["Body"].read().decode())
+                logger.info(f"Non-streaming response: {result}")
+
+                # Parse response - can be list or dict
+                if isinstance(result, list) and len(result) > 0:
+                    generated = result[0].get("generated_text", "")
+                elif isinstance(result, dict):
+                    generated = result.get("generated_text", "")
+                else:
+                    generated = str(result)
+
+                # Yield as a single chunk
+                if generated:
+                    yield generated
 
         except ClientError as e:
             error_msg = str(e)
