@@ -73,8 +73,8 @@ async def chat(request: ChatRequest):
     """
     api_key = request.credentials.get("apiKey", "")
 
-    # SageMaker provider doesn't require an API key (uses IAM)
-    if not api_key and request.provider != "sagemaker":
+    # SageMaker and Bedrock don't require an API key (use IAM role / IRSA)
+    if not api_key and request.provider not in ("sagemaker", "bedrock"):
         raise HTTPException(status_code=400, detail="API key is required")
 
     try:
