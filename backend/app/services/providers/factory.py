@@ -4,6 +4,7 @@ from .base import BaseProvider, ModelInfo
 from .anthropic import AnthropicProvider
 from .openai import OpenAIProvider
 from .sagemaker import SageMakerProvider
+from .bedrock import BedrockProvider
 
 
 # Registry of available providers
@@ -11,6 +12,7 @@ PROVIDERS: Dict[str, Type[BaseProvider]] = {
     "anthropic": AnthropicProvider,
     "openai": OpenAIProvider,
     "sagemaker": SageMakerProvider,
+    "bedrock": BedrockProvider,
 }
 
 

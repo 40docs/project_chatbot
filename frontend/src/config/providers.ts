@@ -40,6 +40,20 @@ export const PROVIDERS: ProviderConfig[] = [
     ],
     defaultModel: 'mistral-7b-instruct',
     supportsRag: true
+  },
+  {
+    id: 'bedrock',
+    name: 'Amazon Bedrock RAG',
+    fields: [], // No API key needed - uses IRSA (EKS ServiceAccount)
+    models: [
+      {
+        id: 'anthropic.claude-3-haiku-20240307-v1:0',
+        name: 'Claude 3 Haiku',
+        description: 'Knowledge Base RAG with Guardrails (ca-central-1)'
+      }
+    ],
+    defaultModel: 'anthropic.claude-3-haiku-20240307-v1:0',
+    supportsRag: true
   }
 ];
 
