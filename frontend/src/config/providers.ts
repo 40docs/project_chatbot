@@ -52,8 +52,7 @@ export const PROVIDERS: ProviderConfig[] = [
         description: 'Knowledge Base RAG with Guardrails (ca-central-1)'
       }
     ],
-    defaultModel: 'anthropic.claude-3-haiku-20240307-v1:0',
-    supportsRag: true
+    defaultModel: 'anthropic.claude-3-haiku-20240307-v1:0'
   }
 ];
 

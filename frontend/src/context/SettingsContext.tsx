@@ -204,8 +204,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   };
 
   const hasValidCredentials = () => {
-    // SageMaker doesn't require credentials (uses IAM role)
-    if (state.provider === 'sagemaker') {
+    // SageMaker and Bedrock don't require credentials (use IAM role / IRSA)
+    if (state.provider === 'sagemaker' || state.provider === 'bedrock') {
       return state.validationStatus === 'success';
     }
     return state.validationStatus === 'success' && Object.keys(state.credentials).length > 0;

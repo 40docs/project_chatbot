@@ -41,8 +41,8 @@ function mockValidateCredentials(
   provider: string,
   credentials: Record<string, string>
 ): ValidationResult {
-  // SageMaker doesn't require an API key (uses IAM role)
-  if (provider === 'sagemaker') {
+  // SageMaker and Bedrock don't require an API key (use IAM role / IRSA)
+  if (provider === 'sagemaker' || provider === 'bedrock') {
     return { valid: true, provider };
   }
 
