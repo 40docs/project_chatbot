@@ -19,8 +19,8 @@ async def validate_credentials(provider_id: str, request: ValidateRequest):
     """
     api_key = request.credentials.get("apiKey")
 
-    # SageMaker uses IAM authentication, not API keys
-    if not api_key and provider_id != "sagemaker":
+    # SageMaker and Bedrock use IAM authentication, not API keys
+    if not api_key and provider_id not in ("sagemaker", "bedrock"):
         return ValidationResponse(
             valid=False,
             provider=provider_id,
